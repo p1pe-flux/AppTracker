@@ -159,4 +159,63 @@ struct CategoryChip: View {
     let isSelected: Bool
     let action: () -> Void
     
-    var body: some View
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if let systemImage = systemImage {
+                    Image(systemName: systemImage)
+                        .font(.caption)
+                }
+                Text(title)
+                    .font(.subheadline)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(isSelected ? Color.accentColor : Color.secondary.opacity(0.1))
+            .foregroundColor(isSelected ? .white : .primary)
+            .clipShape(Capsule())
+        }
+    }
+}
+
+struct ExerciseRowView: View {
+    let exercise: Exercise
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(exercise.wrappedName)
+                .font(.headline)
+            
+            HStack {
+                Label(exercise.wrappedCategory, systemImage: ExerciseCategory(rawValue: exercise.wrappedCategory)?.systemImage ?? "questionmark.circle")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                if !exercise.muscleGroupsArray.isEmpty {
+                    Text("•")
+                        .foregroundColor(.secondary)
+                    
+                    Text(exercise.muscleGroupsArray.prefix(2).joined(separator: ", "))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                    
+                    if exercise.muscleGroupsArray.count > 2 {
+                        Text("+\(exercise.muscleGroupsArray.count - 2)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Preview
+
+struct ExerciseListView_Previews: PreviewProvider {
+    static var previews: some View {
+        ExerciseListView(context: PersistenceController.preview.container.viewContext)
+    }
+}
