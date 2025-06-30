@@ -24,6 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BD08AB832E134EDD0017B2FA /* Workout Tracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Workout Tracker.xcodeproj"; sourceTree = "<group>"; };
 		BDB6EE522E1219A4006E343E /* Workout Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Workout Tracker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDB6EE642E1219A6006E343E /* Workout TrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Workout TrackerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDB6EE6E2E1219A6006E343E /* Workout TrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Workout TrackerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,6 +73,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BD08AB842E134EDD0017B2FA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		BDB6EE492E1219A4006E343E = {
 			isa = PBXGroup;
 			children = (
@@ -198,6 +206,12 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = BDB6EE532E1219A4006E343E /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = BD08AB842E134EDD0017B2FA /* Products */;
+					ProjectRef = BD08AB832E134EDD0017B2FA /* Workout Tracker.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				BDB6EE512E1219A4006E343E /* Workout Tracker */,
