@@ -10,77 +10,90 @@ import CoreData
 
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
-
+    @State private var selectedTab = 0
+    
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
-                    }
+        TabView(selection: $selectedTab) {
+            // Workouts Tab
+            NavigationView {
+                VStack {
+                    Image(systemName: "figure.strengthtraining.traditional")
+                        .font(.system(size: 60))
+                        .foregroundColor(.secondary)
+                        .padding()
+                    
+                    Text("Workouts Coming Soon")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
                 }
-                .onDelete(perform: deleteItems)
+                .navigationTitle("Workouts")
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
+            .tabItem {
+                Label("Workouts", systemImage: "dumbbell")
             }
-            Text("Select an item")
+            .tag(0)
+            
+            // Exercises Tab
+            ExerciseListView(context: viewContext)
+                .tabItem {
+                    Label("Exercises", systemImage: "figure.arms.open")
+                }
+                .tag(1)
+            
+            // Statistics Tab
+            NavigationView {
+                VStack {
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .font(.system(size: 60))
+                        .foregroundColor(.secondary)
+                        .padding()
+                    
+                    Text("Statistics Coming Soon")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
+                }
+                .navigationTitle("Statistics")
+            }
+            .tabItem {
+                Label("Statistics", systemImage: "chart.bar")
+            }
+            .tag(2)
+            
+            // Profile Tab
+            NavigationView {
+                VStack {
+                    Image(systemName: "person.circle")
+                        .font(.system(size: 60))
+                        .foregroundColor(.secondary)
+                        .padding()
+                    
+                    Text("Profile Coming Soon")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
+                }
+                .navigationTitle("Profile")
+            }
+            .tabItem {
+                Label("Profile", systemImage: "person")
+            }
+            .tag(3)
         }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+        .onAppear {
+            // Create preview data in debug mode
+            #if DEBUG
+            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                ExerciseRepository.createPreviewExercises(in: viewContext)
             }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+            #endif
         }
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
+// MARK: - Preview
 
-#Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+            .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    }
 }
