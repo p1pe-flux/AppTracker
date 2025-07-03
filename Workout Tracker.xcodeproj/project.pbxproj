@@ -55,7 +55,9 @@
 				"Models/Exercise+Extensions.swift",
 				Models/Set.swift,
 				Models/Workout.swift,
+				"Models/Workout+Extensions.swift",
 				Repositories/ExerciseRepository.swift,
+				Repositories/WorkoutRepository.swift,
 			);
 			target = BDB6EE512E1219A4006E343E /* Workout Tracker */;
 		};
@@ -63,8 +65,12 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Exercises/ViewModels/ExerciseViewModel.swift,
+				Exercises/ViewModels/WorkoutViewModel.swift,
+				Exercises/Views/ActiveWorkoutView.swift,
+				Exercises/Views/CreateWorkoutView.swift,
 				Exercises/Views/ExerciseFormView.swift,
 				Exercises/Views/ExerciseListView.swift,
+				Exercises/Views/WorkoutListView.swift,
 			);
 			target = BDB6EE512E1219A4006E343E /* Workout Tracker */;
 		};
