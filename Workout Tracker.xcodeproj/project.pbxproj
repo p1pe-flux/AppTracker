@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		BD52D79D2E160A28001E2547 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD52D7792E160A28001E2547 /* Persistence.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		BDB6EE652E1219A6006E343E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -25,25 +29,95 @@
 
 /* Begin PBXFileReference section */
 		BD08AB832E134EDD0017B2FA /* Workout Tracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Workout Tracker.xcodeproj"; sourceTree = "<group>"; };
+		BD52D7792E160A28001E2547 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
+		BD6ED7C32E1603E1000D7FBE /* Workout Tracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Workout Tracker.xcodeproj"; sourceTree = "<group>"; };
 		BDB6EE522E1219A4006E343E /* Workout Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Workout Tracker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDB6EE642E1219A6006E343E /* Workout TrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Workout TrackerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDB6EE6E2E1219A6006E343E /* Workout TrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Workout TrackerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		BD52D8592E160B48001E2547 /* Exceptions for "App" folder in "Workout Tracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ContentView.swift,
+				Workout_TrackerApp.swift,
+			);
+			target = BDB6EE512E1219A4006E343E /* Workout Tracker */;
+		};
+		BD52D85A2E160B48001E2547 /* Exceptions for "Core" folder in "Workout Tracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Database/CoreDataStack.swift,
+				Database/Workout_Tracker.xcdatamodeld,
+				"Extensions/Date+Extensions.swift",
+				Models/Excercise.swift,
+				"Models/Exercise+Extensions.swift",
+				Models/Set.swift,
+				Models/Workout.swift,
+				Repositories/ExerciseRepository.swift,
+			);
+			target = BDB6EE512E1219A4006E343E /* Workout Tracker */;
+		};
+		BD52D85C2E160B48001E2547 /* Exceptions for "Features" folder in "Workout Tracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Exercises/ViewModels/ExerciseViewModel.swift,
+				Exercises/Views/ExerciseFormView.swift,
+				Exercises/Views/ExerciseListView.swift,
+			);
+			target = BDB6EE512E1219A4006E343E /* Workout Tracker */;
+		};
+		BD52D85D2E160B48001E2547 /* Exceptions for "Resources" folder in "Workout Tracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets.xcassets,
+			);
+			target = BDB6EE512E1219A4006E343E /* Workout Tracker */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		BDB6EE542E1219A4006E343E /* Workout Tracker */ = {
+		BD52D7EB2E160B48001E2547 /* App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Workout Tracker";
+			exceptions = (
+				BD52D8592E160B48001E2547 /* Exceptions for "App" folder in "Workout Tracker" target */,
+			);
+			path = App;
 			sourceTree = "<group>";
 		};
-		BDB6EE672E1219A6006E343E /* Workout TrackerTests */ = {
+		BD52D7FC2E160B48001E2547 /* Core */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Workout TrackerTests";
+			exceptions = (
+				BD52D85A2E160B48001E2547 /* Exceptions for "Core" folder in "Workout Tracker" target */,
+			);
+			path = Core;
 			sourceTree = "<group>";
 		};
-		BDB6EE712E1219A6006E343E /* Workout TrackerUITests */ = {
+		BD52D80C2E160B48001E2547 /* Features */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Workout TrackerUITests";
+			exceptions = (
+				BD52D85C2E160B48001E2547 /* Exceptions for "Features" folder in "Workout Tracker" target */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		BD52D80E2E160B48001E2547 /* Resources */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BD52D85D2E160B48001E2547 /* Exceptions for "Resources" folder in "Workout Tracker" target */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		BD52D8122E160B48001E2547 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		BD52D8292E160B48001E2547 /* Workout Tracker.xcodeproj.backup */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Workout Tracker.xcodeproj.backup";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -80,13 +154,24 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		BD6ED7C42E1603E1000D7FBE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		BDB6EE492E1219A4006E343E = {
 			isa = PBXGroup;
 			children = (
-				BDB6EE542E1219A4006E343E /* Workout Tracker */,
-				BDB6EE672E1219A6006E343E /* Workout TrackerTests */,
-				BDB6EE712E1219A6006E343E /* Workout TrackerUITests */,
 				BDB6EE532E1219A4006E343E /* Products */,
+				BD52D7EB2E160B48001E2547 /* App */,
+				BD52D7FC2E160B48001E2547 /* Core */,
+				BD52D80C2E160B48001E2547 /* Features */,
+				BD52D80E2E160B48001E2547 /* Resources */,
+				BD52D8122E160B48001E2547 /* Shared */,
+				BD52D8292E160B48001E2547 /* Workout Tracker.xcodeproj.backup */,
+				BD52D7792E160A28001E2547 /* Persistence.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -116,7 +201,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				BDB6EE542E1219A4006E343E /* Workout Tracker */,
+				BD52D8292E160B48001E2547 /* Workout Tracker.xcodeproj.backup */,
 			);
 			name = "Workout Tracker";
 			packageProductDependencies = (
@@ -138,9 +223,6 @@
 			dependencies = (
 				BDB6EE662E1219A6006E343E /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				BDB6EE672E1219A6006E343E /* Workout TrackerTests */,
-			);
 			name = "Workout TrackerTests";
 			packageProductDependencies = (
 			);
@@ -160,9 +242,6 @@
 			);
 			dependencies = (
 				BDB6EE702E1219A6006E343E /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				BDB6EE712E1219A6006E343E /* Workout TrackerUITests */,
 			);
 			name = "Workout TrackerUITests";
 			packageProductDependencies = (
@@ -211,6 +290,10 @@
 					ProductGroup = BD08AB842E134EDD0017B2FA /* Products */;
 					ProjectRef = BD08AB832E134EDD0017B2FA /* Workout Tracker.xcodeproj */;
 				},
+				{
+					ProductGroup = BD6ED7C42E1603E1000D7FBE /* Products */;
+					ProjectRef = BD6ED7C32E1603E1000D7FBE /* Workout Tracker.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -250,6 +333,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD52D79D2E160A28001E2547 /* Persistence.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

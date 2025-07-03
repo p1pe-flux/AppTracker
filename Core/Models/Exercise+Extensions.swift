@@ -25,10 +25,15 @@ extension Exercise {
     
     var muscleGroupsArray: [String] {
         get {
-            (muscleGroups as? [String]) ?? []
+            if let array = muscleGroups as? [String] {
+                return array
+            } else if let array = muscleGroups as? NSArray as? [String] {
+                return array
+            }
+            return []
         }
         set {
-            muscleGroups = newValue as NSObject
+            muscleGroups = NSArray(array: newValue)
         }
     }
     
