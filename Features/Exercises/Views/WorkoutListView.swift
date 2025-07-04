@@ -13,8 +13,12 @@ struct WorkoutListView: View {
     @State private var showingCreateWorkout = false
     @State private var selectedWorkout: Workout?
     @State private var showingActiveWorkout = false
+    @State private var showingCalendar = false
+    
+    private let context: NSManagedObjectContext
     
     init(context: NSManagedObjectContext) {
+        self.context = context
         _viewModel = StateObject(wrappedValue: WorkoutViewModel(context: context))
     }
     
@@ -38,6 +42,12 @@ struct WorkoutListView: View {
             }
             .navigationTitle("Workouts")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { showingCalendar = true }) {
+                        Image(systemName: "calendar")
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingCreateWorkout = true }) {
                         Image(systemName: "plus")
@@ -51,6 +61,9 @@ struct WorkoutListView: View {
                 NavigationView {
                     ActiveWorkoutView(workout: workout)
                 }
+            }
+            .sheet(isPresented: $showingCalendar) {
+                WorkoutCalendarView(context: context)
             }
             .alert("Error", isPresented: $viewModel.showError) {
                 Button("OK") { viewModel.showError = false }

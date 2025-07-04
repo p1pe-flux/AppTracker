@@ -56,6 +56,7 @@
 				Models/Set.swift,
 				Models/Workout.swift,
 				"Models/Workout+Extensions.swift",
+				Models/WorkoutAnalytics.swift,
 				Repositories/ExerciseRepository.swift,
 				Repositories/WorkoutRepository.swift,
 			);
@@ -68,9 +69,15 @@
 				Exercises/ViewModels/WorkoutViewModel.swift,
 				Exercises/Views/ActiveWorkoutView.swift,
 				Exercises/Views/CreateWorkoutView.swift,
+				Exercises/Views/EnhancedExerciseFormView.swift,
+				Exercises/Views/EnhancedMuscleGroupPicker.swift,
 				Exercises/Views/ExerciseFormView.swift,
 				Exercises/Views/ExerciseListView.swift,
 				Exercises/Views/WorkoutListView.swift,
+				Statistics/Views/ExerciseDetailStatsView.swift,
+				Statistics/Views/StatisticsView.swift,
+				Statistics/Views/WorkoutCalendarView.swift,
+				Statistics/Views/WorkoutDetailCard.swift,
 			);
 			target = BDB6EE512E1219A4006E343E /* Workout Tracker */;
 		};
@@ -78,6 +85,17 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Assets.xcassets,
+			);
+			target = BDB6EE512E1219A4006E343E /* Workout Tracker */;
+		};
+		BDF229292E176311001DFAD0 /* Exceptions for "Shared" folder in "Workout Tracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Components/EnhancedTimerView.swift,
+				Components/Theme.swift,
+				Components/UIComponents.swift,
+				Utils/UserPreferences.swift,
+				Utils/ValidationResult.swift,
 			);
 			target = BDB6EE512E1219A4006E343E /* Workout Tracker */;
 		};
@@ -118,6 +136,9 @@
 		};
 		BD52D8122E160B48001E2547 /* Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				BDF229292E176311001DFAD0 /* Exceptions for "Shared" folder in "Workout Tracker" target */,
+			);
 			path = Shared;
 			sourceTree = "<group>";
 		};
