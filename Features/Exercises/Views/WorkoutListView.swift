@@ -14,6 +14,8 @@ struct WorkoutListView: View {
     @State private var selectedWorkout: Workout?
     @State private var showingActiveWorkout = false
     @State private var showingCalendar = false
+    @State private var showingDuplicateSheet = false
+    @State private var workoutToDuplicate: Workout?
     
     private let context: NSManagedObjectContext
     
@@ -27,18 +29,28 @@ struct WorkoutListView: View {
             VStack(spacing: 0) {
                 // Today's workouts section
                 if !viewModel.todayWorkouts.isEmpty {
-                    todaySection
-                }
+                                    todaySection
+                                }
                 
-                // All workouts list
-                if viewModel.isLoading {
-                    ProgressView("Loading workouts...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if viewModel.workouts.isEmpty {
-                    emptyState
-                } else {
-                    workoutsList
-                }
+                // Quick actions section
+                if !viewModel.workouts.isEmpty {
+                     QuickActionsSection(viewModel: viewModel)
+                         .padding(.vertical)
+                     
+                     Divider()
+                 }
+                 
+                 // All workouts list
+                 if viewModel.isLoading {
+                     ProgressView("Loading workouts...")
+                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                 } else if viewModel.workouts.isEmpty {
+                     emptyState
+                 } else {
+                     workoutsList
+                 }
+                
+                
             }
             .navigationTitle("Workouts")
             .toolbar {
@@ -65,11 +77,20 @@ struct WorkoutListView: View {
             .sheet(isPresented: $showingCalendar) {
                 WorkoutCalendarView(context: context)
             }
+            .sheet(isPresented: $showingDuplicateSheet) {
+                if let workout = workoutToDuplicate {
+                    DuplicateWorkoutView(workout: workout)
+                }
+            }
             .alert("Error", isPresented: $viewModel.showError) {
                 Button("OK") { viewModel.showError = false }
             } message: {
                 Text(viewModel.errorMessage ?? "Unknown error")
             }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            FloatingActionButton()
+                .padding()
         }
     }
     
@@ -87,6 +108,19 @@ struct WorkoutListView: View {
                     ForEach(viewModel.todayWorkouts) { workout in
                         TodayWorkoutCard(workout: workout) {
                             selectedWorkout = workout
+                        }
+                        .contextMenu {
+                            Button(action: {
+                                duplicateWorkoutToTomorrow(workout)
+                            }) {
+                                Label("Duplicate to Tomorrow", systemImage: "calendar.badge.plus")
+                            }
+                            
+                            Button(action: {
+                                // Start workout
+                            }) {
+                                Label("Start Now", systemImage: "play.circle")
+                            }
                         }
                     }
                     
@@ -113,6 +147,22 @@ struct WorkoutListView: View {
             Divider()
         }
     }
+        
+        private func duplicateWorkoutToTomorrow(_ workout: Workout) {
+                let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
+                let duplicationService = WorkoutDuplicationService(context: context)
+                
+                Task {
+                    do {
+                        _ = try duplicationService.duplicateWorkout(workout, toDate: tomorrow)
+                        HapticManager.shared.notification(.success)
+                        viewModel.loadWorkouts()
+                    } catch {
+                        print("Error duplicating workout: \(error)")
+                    }
+                }
+            }
+        
     
     private var workoutsList: some View {
         List {
@@ -124,14 +174,70 @@ struct WorkoutListView: View {
                             .onTapGesture {
                                 selectedWorkout = workout
                             }
-                    }
-                    .onDelete { offsets in
-                        deleteWorkouts(from: section.value, at: offsets)
+                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                Button {
+                                    duplicateWorkoutToToday(workout)
+                                } label: {
+                                    Label("Today", systemImage: "calendar.badge.plus")
+                                }
+                                .tint(Theme.Colors.primary)
+                                
+                                Button {
+                                    duplicateWorkoutToTomorrow(workout)
+                                } label: {
+                                    Label("Tomorrow", systemImage: "calendar.badge.clock")
+                                }
+                                .tint(Theme.Colors.shoulders)
+                            }
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    deleteWorkout(workout)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                
+                                Button {
+                                    showingDuplicateSheet = true
+                                    workoutToDuplicate = workout
+                                } label: {
+                                    Label("Custom", systemImage: "calendar")
+                                }
+                                .tint(Theme.Colors.info)
+                            }
                     }
                 }
             }
         }
         .listStyle(InsetGroupedListStyle())
+    }
+    
+    private func duplicateWorkoutToToday(_ workout: Workout) {
+        duplicateWorkout(workout, to: Date(), name: "\(workout.wrappedName) - Today")
+    }
+    
+    private func duplicateWorkout(_ workout: Workout, to date: Date, name: String? = nil) {
+        let duplicationService = WorkoutDuplicationService(context: context)
+        
+        Task {
+            do {
+                _ = try duplicationService.duplicateWorkout(
+                    workout,
+                    toDate: date,
+                    withName: name
+                )
+                HapticManager.shared.notification(.success)
+                viewModel.loadWorkouts()
+            } catch {
+                viewModel.errorMessage = "Failed to duplicate workout"
+                viewModel.showError = true
+            }
+        }
+    }
+    
+    private func deleteWorkout(_ workout: Workout) {
+        Task {
+            await viewModel.deleteWorkout(workout)
+        }
     }
     
     private var emptyState: some View {
@@ -241,6 +347,10 @@ struct TodayWorkoutCard: View {
 
 struct WorkoutRowView: View {
     let workout: Workout
+    @Environment(\.managedObjectContext) private var context
+    @State private var showingDuplicateSheet = false
+    @State private var showingActions = false
+    @State private var showingQuickDuplicate = false
     
     var body: some View {
         HStack {
@@ -272,8 +382,265 @@ struct WorkoutRowView: View {
                 CircularProgressView(progress: workout.progress)
                     .frame(width: 24, height: 24)
             }
+            
+            // Quick duplicate button
+            Button(action: { showingQuickDuplicate = true }) {
+                Image(systemName: "doc.on.doc")
+                    .font(.system(size: 14))
+                    .foregroundColor(Theme.Colors.primary)
+                    .padding(8)
+                    .background(
+                        Circle()
+                            .fill(Theme.Colors.primary.opacity(0.1))
+                    )
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            Menu {
+                Button(action: { showingDuplicateSheet = true }) {
+                    Label("Duplicate with Custom Date", systemImage: "calendar")
+                }
+                
+                Button(action: { duplicateToTomorrow() }) {
+                    Label("Duplicate to Tomorrow", systemImage: "calendar.badge.plus")
+                }
+                
+                Button(action: { createTemplate() }) {
+                    Label("Save as Template", systemImage: "square.and.arrow.down")
+                }
+                
+                Divider()
+                
+                Button(role: .destructive, action: { /* Delete */ }) {
+                    Label("Delete", systemImage: "trash")
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+            }
         }
         .padding(.vertical, 4)
+        .sheet(isPresented: $showingDuplicateSheet) {
+            DuplicateWorkoutView(workout: workout)
+        }
+        .confirmationDialog("Quick Duplicate", isPresented: $showingQuickDuplicate) {
+            Button("Duplicate to Today") {
+                duplicateToToday()
+            }
+            
+            Button("Duplicate to Tomorrow") {
+                duplicateToTomorrow()
+            }
+            
+            Button("Duplicate to Next Week") {
+                duplicateToNextWeek()
+            }
+            
+            Button("Custom Date...") {
+                showingDuplicateSheet = true
+            }
+            
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("When would you like to schedule this workout?")
+        }
+    }
+    
+    // MARK: - Quick Actions
+    
+    private func duplicateToToday() {
+        duplicateWorkout(to: Date())
+    }
+    
+    private func duplicateToTomorrow() {
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
+        duplicateWorkout(to: tomorrow)
+    }
+    
+    private func duplicateToNextWeek() {
+        let nextWeek = Calendar.current.date(byAdding: .weekOfYear, value: 1, to: Date())!
+        duplicateWorkout(to: nextWeek)
+    }
+    
+    private func duplicateWorkout(to date: Date) {
+        let duplicationService = WorkoutDuplicationService(context: context)
+        
+        Task {
+            do {
+                _ = try duplicationService.duplicateWorkout(workout, toDate: date)
+                HapticManager.shared.notification(.success)
+            } catch {
+                print("Error duplicating workout: \(error)")
+            }
+        }
+    }
+    
+    private func createTemplate() {
+        let duplicationService = WorkoutDuplicationService(context: context)
+        
+        Task {
+            do {
+                _ = try duplicationService.createTemplate(
+                    from: workout,
+                    templateName: "\(workout.wrappedName) Template"
+                )
+                HapticManager.shared.notification(.success)
+            } catch {
+                print("Error creating template: \(error)")
+            }
+        }
+    }
+}
+
+// Agregar este widget a WorkoutListView.swift
+
+struct QuickActionsSection: View {
+    @ObservedObject var viewModel: WorkoutViewModel
+    @Environment(\.managedObjectContext) private var context
+    @State private var showingTemplates = false
+    
+    private var recentWorkouts: [Workout] {
+        Array(viewModel.workouts.prefix(3))
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.medium) {
+            Text("Quick Actions")
+                .font(.headline)
+                .padding(.horizontal)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Theme.Spacing.medium) {
+                    // Create new workout
+                    QuickActionCard(
+                        title: "New Workout",
+                        icon: "plus.circle.fill",
+                        color: Theme.Colors.primary
+                    ) {
+                        // Navigate to create workout
+                    }
+                    
+                    // Use template
+                    QuickActionCard(
+                        title: "From Template",
+                        icon: "doc.text.fill",
+                        color: Theme.Colors.shoulders
+                    ) {
+                        showingTemplates = true
+                    }
+                    
+                    // Recent workouts to duplicate
+                    ForEach(recentWorkouts) { workout in
+                        QuickDuplicateCard(workout: workout)
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+        .sheet(isPresented: $showingTemplates) {
+            TemplateListView()
+        }
+    }
+}
+
+struct QuickActionCard: View {
+    let title: String
+    let icon: String
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: Theme.Spacing.small) {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(.white)
+                    .frame(width: 50, height: 50)
+                    .background(
+                        Circle()
+                            .fill(color)
+                    )
+                
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(width: 100, height: 100)
+            .background(
+                RoundedRectangle(cornerRadius: Theme.CornerRadius.medium)
+                    .fill(color.opacity(0.1))
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+struct QuickDuplicateCard: View {
+    let workout: Workout
+    @Environment(\.managedObjectContext) private var context
+    @State private var showingOptions = false
+    
+    var body: some View {
+        Button(action: { showingOptions = true }) {
+            VStack(spacing: Theme.Spacing.small) {
+                Image(systemName: "doc.on.doc.fill")
+                    .font(.title2)
+                    .foregroundColor(Theme.Colors.primary)
+                    .frame(width: 50, height: 50)
+                    .background(
+                        Circle()
+                            .fill(Theme.Colors.primary.opacity(0.2))
+                    )
+                
+                Text(workout.wrappedName)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                
+                Text(workout.formattedDate)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            .frame(width: 100, height: 120)
+            .background(
+                RoundedRectangle(cornerRadius: Theme.CornerRadius.medium)
+                    .fill(Color(UIColor.secondarySystemBackground))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Theme.CornerRadius.medium)
+                            .stroke(Theme.Colors.primary.opacity(0.3), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .confirmationDialog("Duplicate '\(workout.wrappedName)'", isPresented: $showingOptions) {
+            Button("To Today") {
+                duplicateWorkout(to: Date())
+            }
+            
+            Button("To Tomorrow") {
+                duplicateWorkout(to: Calendar.current.date(byAdding: .day, value: 1, to: Date())!)
+            }
+            
+            Button("Cancel", role: .cancel) { }
+        }
+    }
+    
+    private func duplicateWorkout(to date: Date) {
+        let duplicationService = WorkoutDuplicationService(context: context)
+        
+        Task {
+            do {
+                _ = try duplicationService.duplicateWorkout(workout, toDate: date)
+                HapticManager.shared.notification(.success)
+            } catch {
+                print("Error duplicating workout: \(error)")
+            }
+        }
     }
 }
 
@@ -303,5 +670,180 @@ struct CircularProgressView: View {
 struct WorkoutListView_Previews: PreviewProvider {
     static var previews: some View {
         WorkoutListView(context: PersistenceController.preview.container.viewContext)
+    }
+}
+
+
+// Estructura del Floating Action Button
+struct FloatingActionButton: View {
+    @State private var isExpanded = false
+    @State private var showingCreateWorkout = false
+    @State private var showingTemplates = false
+    @State private var showingLastWorkout = false
+    @Environment(\.managedObjectContext) private var context
+    
+    var lastWorkout: Workout? {
+        let request: NSFetchRequest<Workout> = Workout.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \Workout.date, ascending: false)]
+        request.fetchLimit = 1
+        
+        return try? context.fetch(request).first
+    }
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            if isExpanded {
+                // Mini action buttons
+                VStack(spacing: 12) {
+                    // Duplicate last workout
+                    if lastWorkout != nil {
+                        MiniActionButton(
+                            icon: "doc.on.doc",
+                            label: "Repeat Last",
+                            color: Theme.Colors.shoulders
+                        ) {
+                            showingLastWorkout = true
+                        }
+                    }
+                    
+                    // From template
+                    MiniActionButton(
+                        icon: "doc.text",
+                        label: "Template",
+                        color: Theme.Colors.info
+                    ) {
+                        showingTemplates = true
+                    }
+                    
+                    // New workout
+                    MiniActionButton(
+                        icon: "plus",
+                        label: "New",
+                        color: Theme.Colors.success
+                    ) {
+                        showingCreateWorkout = true
+                    }
+                }
+                .transition(.scale.combined(with: .opacity))
+            }
+            
+            // Main FAB button
+            Button(action: {
+                withAnimation(.spring()) {
+                    isExpanded.toggle()
+                    HapticManager.shared.impact(.light)
+                }
+            }) {
+                Image(systemName: isExpanded ? "xmark" : "plus")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .rotationEffect(.degrees(isExpanded ? 45 : 0))
+                    .frame(width: 56, height: 56)
+                    .background(
+                        Circle()
+                            .fill(Theme.Gradients.primary)
+                            .shadow(
+                                color: Theme.Colors.primary.opacity(0.3),
+                                radius: 8,
+                                x: 0,
+                                y: 4
+                            )
+                    )
+            }
+        }
+        .confirmationDialog("Repeat Last Workout", isPresented: $showingLastWorkout) {
+            if let workout = lastWorkout {
+                Button("Repeat Today") {
+                    duplicateWorkout(workout, to: Date())
+                }
+                
+                Button("Repeat Tomorrow") {
+                    duplicateWorkout(workout, to: Calendar.current.date(byAdding: .day, value: 1, to: Date())!)
+                }
+                
+                Button("Custom Date") {
+                    // Show date picker
+                }
+            }
+            
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            if let workout = lastWorkout {
+                Text("Repeat '\(workout.wrappedName)'?")
+            }
+        }
+        .sheet(isPresented: $showingCreateWorkout) {
+            // Create workout view
+        }
+        .sheet(isPresented: $showingTemplates) {
+            // Templates view
+        }
+    }
+    
+    private func duplicateWorkout(_ workout: Workout, to date: Date) {
+        let duplicationService = WorkoutDuplicationService(context: context)
+        
+        Task {
+            do {
+                _ = try duplicationService.duplicateWorkout(workout, toDate: date)
+                HapticManager.shared.notification(.success)
+                isExpanded = false
+            } catch {
+                print("Error duplicating workout: \(error)")
+            }
+        }
+    }
+}
+
+struct MiniActionButton: View {
+    let icon: String
+    let label: String
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Text(label)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(Color(UIColor.systemBackground))
+                            .shadow(
+                                color: Color.black.opacity(0.1),
+                                radius: 4,
+                                x: 0,
+                                y: 2
+                            )
+                    )
+                
+                Image(systemName: icon)
+                    .font(.body)
+                    .foregroundColor(.white)
+                    .frame(width: 40, height: 40)
+                    .background(
+                        Circle()
+                            .fill(color)
+                    )
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+
+
+
+
+struct TemplateListView: View {
+    var body: some View {
+        NavigationView {
+            Text("Template list placeholder")
+                .navigationTitle("Templates")
+        }
     }
 }

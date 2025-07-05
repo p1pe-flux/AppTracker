@@ -8,13 +8,14 @@
         <attribute name="name" attributeType="String"/>
         <attribute name="notes" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="templateExercises" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TemplateExercise" inverseName="exercise" inverseEntity="TemplateExercise"/>
         <relationship name="workoutExercises" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="WorkoutExercise" inverseName="exercise" inverseEntity="WorkoutExercise"/>
     </entity>
     <entity name="TemplateExercise" representedClassName=".TemplateExercise" syncable="YES" codeGenerationType="class">
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="order" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="setsConfiguration" optional="YES" attributeType="Binary"/>
-        <relationship name="exercise" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Exercise"/>
+        <relationship name="exercise" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Exercise" inverseName="templateExercises" inverseEntity="Exercise"/>
         <relationship name="template" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WorkoutTemplate" inverseName="templateExercises" inverseEntity="WorkoutTemplate"/>
     </entity>
     <entity name="Workout" representedClassName=".Workout" syncable="YES" codeGenerationType="class">

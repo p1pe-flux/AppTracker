@@ -112,7 +112,7 @@ struct RestTimerView: View {
         .onAppear {
             animatePulse = true
         }
-        .onChange(of: seconds) { newValue in
+        .onChange(of: seconds) { _, newValue in
             if newValue == 0 {
                 HapticManager.shared.notification(.success)
                 playSound()
@@ -208,7 +208,7 @@ struct WorkoutTimerView: View {
                 pulseAnimation = true
             }
         }
-        .onChange(of: isRunning) { newValue in
+        .onChange(of: isRunning) { _, newValue in
             pulseAnimation = newValue
         }
     }

@@ -346,9 +346,7 @@ struct SetRow: View {
                 .padding(.vertical, 8)
                 .background(Color(UIColor.tertiarySystemBackground))
                 .cornerRadius(8)
-                .onChange(of: weight) { _ in
-                    updateSet()
-                }
+                .onChange(of: weight) { _, _ in updateSet() }
             
             // Reps input
             TextField("0", text: $reps)
@@ -358,9 +356,7 @@ struct SetRow: View {
                 .padding(.vertical, 8)
                 .background(Color(UIColor.tertiarySystemBackground))
                 .cornerRadius(8)
-                .onChange(of: reps) { _ in
-                    updateSet()
-                }
+                .onChange(of: reps) { _, _ in updateSet() }
             
             // Complete button
             Button(action: {

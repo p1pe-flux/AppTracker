@@ -150,7 +150,7 @@ struct ExerciseDetailStatsView: View {
             }
         }
         .pickerStyle(SegmentedPickerStyle())
-        .onChange(of: selectedTimeRange) { newRange in
+        .onChange(of: selectedTimeRange) { _, newRange in
             viewModel.loadStats(for: newRange)
         }
     }

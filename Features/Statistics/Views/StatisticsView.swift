@@ -72,7 +72,7 @@ struct StatisticsView: View {
             }
         }
         .pickerStyle(SegmentedPickerStyle())
-        .onChange(of: selectedTimeRange) { newRange in
+        .onChange(of: selectedTimeRange) { _, newRange in
             viewModel.loadAnalytics(for: newRange)
         }
     }
@@ -219,7 +219,7 @@ struct StatisticsView: View {
                             
                             Spacer()
                             
-                            Text("\(Int(item.percentage))%")
+                            Text("\(Int(item.percentage.isFinite ? item.percentage : 0))%")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }

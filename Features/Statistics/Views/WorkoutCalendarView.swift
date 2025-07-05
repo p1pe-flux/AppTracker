@@ -13,6 +13,9 @@ struct WorkoutCalendarView: View {
     @StateObject private var viewModel: CalendarViewModel
     @State private var selectedDate = Date()
     @State private var showingDayDetail = false
+    @State private var showingCreateWorkout = false
+    @State private var showingDuplicateSheet = false
+    @State private var selectedWorkoutToDuplicate: Workout?
     
     init(context: NSManagedObjectContext) {
         _viewModel = StateObject(wrappedValue: CalendarViewModel(context: context))
@@ -123,13 +126,21 @@ struct WorkoutCalendarView: View {
                 
                 Spacer()
                 
-                if viewModel.workouts(for: selectedDate) != nil {
-                    Button("Details") {
-                        showingDayDetail = true
+                HStack(spacing: Theme.Spacing.small) {
+                    Button(action: { showingCreateWorkout = true }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(Theme.Colors.primary)
                     }
-                    .font(.subheadline)
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                    
+                    if viewModel.workouts(for: selectedDate) != nil {
+                        Button("Details") {
+                            showingDayDetail = true
+                        }
+                        .font(.subheadline)
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
                 }
             }
             .padding(.horizontal)
@@ -140,6 +151,26 @@ struct WorkoutCalendarView: View {
                     VStack(spacing: Theme.Spacing.medium) {
                         ForEach(workouts) { workout in
                             WorkoutCalendarCard(workout: workout)
+                                .contextMenu {
+                                    Button(action: {
+                                        selectedWorkoutToDuplicate = workout
+                                        showingDuplicateSheet = true
+                                    }) {
+                                        Label("Duplicate", systemImage: "doc.on.doc")
+                                    }
+                                    
+                                    Button(action: {
+                                        duplicateToToday(workout)
+                                    }) {
+                                        Label("Duplicate to Today", systemImage: "calendar.badge.plus")
+                                    }
+                                    
+                                    Button(action: {
+                                        // Navigate to active workout
+                                    }) {
+                                        Label("Start Workout", systemImage: "play.circle")
+                                    }
+                                }
                         }
                     }
                     .padding(.horizontal)
@@ -150,16 +181,48 @@ struct WorkoutCalendarView: View {
                         message: "No workouts recorded for this date",
                         actionTitle: "Add Workout",
                         action: {
-                            // Navigate to create workout
+                            showingCreateWorkout = true
                         }
                     )
                     .frame(height: 200)
                 }
             }
         }
-    }
+        .sheet(isPresented: $showingCreateWorkout) {
+            CreateWorkoutFromCalendarView(
+                selectedDate: selectedDate,
+                viewModel: WorkoutViewModel(context: context)
+            )
+        }
+        .sheet(isPresented: $showingDuplicateSheet) {
+            if let workout = selectedWorkoutToDuplicate {
+                DuplicateWorkoutView(workout: workout)
+            }
+        }
+    } // <- Esta llave de cierre faltaba
     
     // MARK: - Helper Methods
+    
+    private func duplicateToToday(_ workout: Workout) {
+        let duplicationService = WorkoutDuplicationService(context: context)
+        
+        Task {
+            do {
+                _ = try duplicationService.duplicateWorkout(
+                    workout,
+                    toDate: Date(),
+                    withName: "\(workout.wrappedName) - Today"
+                )
+                
+                HapticManager.shared.notification(.success)
+                
+                // Recargar el calendario
+                viewModel.loadMonth(for: viewModel.currentMonth)
+            } catch {
+                print("Error duplicating workout: \(error)")
+            }
+        }
+    }
     
     private var monthYearString: String {
         let formatter = DateFormatter()
@@ -452,7 +515,7 @@ class CalendarViewModel: ObservableObject {
         // Add next month's leading days
         let remainingDays = 42 - days.count // 6 weeks * 7 days
         for day in 1...remainingDays {
-            if let date = calendar.date(byAdding: .day, value: monthRange.count + day - 1, to: firstOfMonth) {
+            if let date = calendar.date(byAdding: .day, value: day - monthRange.count - 1, to: firstOfMonth) {
                 days.append(CalendarDay(date: date, dayNumber: day, isInCurrentMonth: false))
             }
         }
