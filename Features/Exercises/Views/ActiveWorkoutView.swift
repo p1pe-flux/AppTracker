@@ -294,7 +294,7 @@ struct ExerciseCard: View {
                     
                     // Sets list
                     ForEach(workoutExercise.setsArray) { set in
-                        SetRow(set: set, viewModel: viewModel)
+                        EnhancedSetRow(set: set, viewModel: viewModel)
                     }
                     
                     // Add set button
@@ -365,7 +365,7 @@ struct SetRow: View {
             // Complete button
             Button(action: {
                 Task {
-                    await viewModel.updateSet(set, weight: nil, reps: nil, completed: !set.completed)
+                    await viewModel.updateSet(set, weight: nil, reps: nil, restTime: nil, completed: !set.completed)
                     
                     // Start rest timer if completing a set
                     if !set.completed && set.restTime > 0 {
@@ -385,12 +385,13 @@ struct SetRow: View {
         }
     }
     
+    
     private func updateSet() {
         Task {
             let weightValue = Double(weight) ?? 0
             let repsValue = Int16(reps) ?? 0
             
-            await viewModel.updateSet(set, weight: weightValue, reps: repsValue, completed: nil)
+            await viewModel.updateSet(set, weight: weightValue, reps: repsValue, restTime: nil, completed: nil)
         }
     }
 }

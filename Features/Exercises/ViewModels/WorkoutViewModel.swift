@@ -289,9 +289,11 @@ class ActiveWorkoutViewModel: ObservableObject {
         }
     }
     
-    func updateSet(_ set: WorkoutSet, weight: Double?, reps: Int16?, completed: Bool?) async {
+    // En ActiveWorkoutViewModel, actualiza este método:
+
+    func updateSet(_ set: WorkoutSet, weight: Double?, reps: Int16?, restTime: Int16?, completed: Bool?) async {
         do {
-            try repository.updateSet(set, weight: weight, reps: reps, restTime: nil, completed: completed)
+            try repository.updateSet(set, weight: weight, reps: reps, restTime: restTime, completed: completed)
         } catch {
             print("Error updating set: \(error)")
         }

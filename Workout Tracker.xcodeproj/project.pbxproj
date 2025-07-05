@@ -58,6 +58,7 @@
 				"Models/Workout+Extensions.swift",
 				Models/WorkoutAnalytics.swift,
 				Repositories/ExerciseRepository.swift,
+				Repositories/WorkoutDuplicationService.swift,
 				Repositories/WorkoutRepository.swift,
 			);
 			target = BDB6EE512E1219A4006E343E /* Workout Tracker */;
@@ -68,9 +69,12 @@
 				Exercises/ViewModels/ExerciseViewModel.swift,
 				Exercises/ViewModels/WorkoutViewModel.swift,
 				Exercises/Views/ActiveWorkoutView.swift,
+				Exercises/Views/CreateWorkoutFromCalendarView.swift,
 				Exercises/Views/CreateWorkoutView.swift,
+				Exercises/Views/DuplicateWorkoutView.swift,
 				Exercises/Views/EnhancedExerciseFormView.swift,
 				Exercises/Views/EnhancedMuscleGroupPicker.swift,
+				Exercises/Views/EnhancedSetRow.swift,
 				Exercises/Views/ExerciseFormView.swift,
 				Exercises/Views/ExerciseListView.swift,
 				Exercises/Views/WorkoutListView.swift,
