@@ -260,8 +260,13 @@ struct CreateWorkoutFromCalendarView: View {
             notes: workoutNotes.isEmpty ? nil : workoutNotes
         )
         
+        // Recargar los workouts después de crear
+        await viewModel.loadWorkouts()
+        
         // Add exercises if selected
-        if !selectedExercises.isEmpty, let newWorkout = viewModel.workouts.first(where: { $0.date == selectedDate }) {
+        if !selectedExercises.isEmpty, let newWorkout = viewModel.workouts.first(where: {
+            Calendar.current.isDate($0.date ?? Date(), inSameDayAs: selectedDate)
+        }) {
             let repository = WorkoutRepository(context: context)
             for (index, exercise) in selectedExercises.enumerated() {
                 do {

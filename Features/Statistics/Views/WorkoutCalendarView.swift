@@ -11,13 +11,15 @@ import CoreData
 struct WorkoutCalendarView: View {
     @Environment(\.managedObjectContext) private var context
     @StateObject private var viewModel: CalendarViewModel
+    @ObservedObject var workoutViewModel: WorkoutViewModel
     @State private var selectedDate = Date()
     @State private var showingDayDetail = false
     @State private var showingCreateWorkout = false
     @State private var showingDuplicateSheet = false
     @State private var selectedWorkoutToDuplicate: Workout?
     
-    init(context: NSManagedObjectContext) {
+    init(context: NSManagedObjectContext, workoutViewModel: WorkoutViewModel) {
+        self.workoutViewModel = workoutViewModel
         _viewModel = StateObject(wrappedValue: CalendarViewModel(context: context))
     }
     
@@ -37,6 +39,12 @@ struct WorkoutCalendarView: View {
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingDayDetail) {
                 DayDetailView(date: selectedDate, context: context)
+            }
+            .sheet(isPresented: $showingCreateWorkout) {
+                CreateWorkoutFromCalendarView(
+                    selectedDate: selectedDate,
+                    viewModel: workoutViewModel // Usar el viewModel compartido
+                )
             }
             .onAppear {
                 viewModel.loadMonth(for: selectedDate)
@@ -170,6 +178,12 @@ struct WorkoutCalendarView: View {
                                     }) {
                                         Label("Start Workout", systemImage: "play.circle")
                                     }
+                                    
+                                    Button(role: .destructive, action: {
+                                        deleteWorkout(workout)
+                                    }) {
+                                        Label("Delete", systemImage: "trash")
+                                    }
                                 }
                         }
                     }
@@ -221,6 +235,17 @@ struct WorkoutCalendarView: View {
             } catch {
                 print("Error duplicating workout: \(error)")
             }
+        }
+    }
+    
+    private func deleteWorkout(_ workout: Workout) {
+        context.delete(workout)
+        do {
+            try context.save()
+            viewModel.loadMonth(for: viewModel.currentMonth)
+            HapticManager.shared.notification(.warning)
+        } catch {
+            print("Error deleting workout: \(error)")
         }
     }
     
@@ -412,6 +437,13 @@ struct DayDetailView: View {
                     VStack(spacing: Theme.Spacing.large) {
                         ForEach(workouts) { workout in
                             WorkoutDetailCard(workout: workout)
+                                .swipeActions {
+                                    Button(role: .destructive) {
+                                        deleteWorkout(workout)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                         }
                     }
                     .padding()
@@ -432,6 +464,7 @@ struct DayDetailView: View {
         }
     }
     
+    
     private var dateString: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
@@ -451,6 +484,17 @@ struct DayDetailView: View {
             workouts = try context.fetch(request)
         } catch {
             print("Error loading workouts: \(error)")
+        }
+    }
+    
+    private func deleteWorkout(_ workout: Workout) {
+        context.delete(workout)
+        do {
+            try context.save()
+            loadWorkouts()
+            HapticManager.shared.notification(.warning)
+        } catch {
+            print("Error deleting workout: \(error)")
         }
     }
 }

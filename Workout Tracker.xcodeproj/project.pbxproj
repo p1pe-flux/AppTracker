@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BD52D79D2E160A28001E2547 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD52D7792E160A28001E2547 /* Persistence.swift */; };
+		BD4D703F2E1A025C0020C8F8 /* Persistance.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4D703E2E1A024F0020C8F8 /* Persistance.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,7 +29,7 @@
 
 /* Begin PBXFileReference section */
 		BD08AB832E134EDD0017B2FA /* Workout Tracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Workout Tracker.xcodeproj"; sourceTree = "<group>"; };
-		BD52D7792E160A28001E2547 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
+		BD4D703E2E1A024F0020C8F8 /* Persistance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistance.swift; sourceTree = "<group>"; };
 		BD6ED7C32E1603E1000D7FBE /* Workout Tracker.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Workout Tracker.xcodeproj"; sourceTree = "<group>"; };
 		BDB6EE522E1219A4006E343E /* Workout Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Workout Tracker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDB6EE642E1219A6006E343E /* Workout TrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Workout TrackerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -190,6 +190,7 @@
 		BDB6EE492E1219A4006E343E = {
 			isa = PBXGroup;
 			children = (
+				BD4D703E2E1A024F0020C8F8 /* Persistance.swift */,
 				BDB6EE532E1219A4006E343E /* Products */,
 				BD52D7EB2E160B48001E2547 /* App */,
 				BD52D7FC2E160B48001E2547 /* Core */,
@@ -197,7 +198,6 @@
 				BD52D80E2E160B48001E2547 /* Resources */,
 				BD52D8122E160B48001E2547 /* Shared */,
 				BD52D8292E160B48001E2547 /* Workout Tracker.xcodeproj.backup */,
-				BD52D7792E160A28001E2547 /* Persistence.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -359,7 +359,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BD52D79D2E160A28001E2547 /* Persistence.swift in Sources */,
+				BD4D703F2E1A025C0020C8F8 /* Persistance.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

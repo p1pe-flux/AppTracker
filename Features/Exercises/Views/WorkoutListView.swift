@@ -32,13 +32,6 @@ struct WorkoutListView: View {
                                     todaySection
                                 }
                 
-                // Quick actions section
-                if !viewModel.workouts.isEmpty {
-                     QuickActionsSection(viewModel: viewModel)
-                         .padding(.vertical)
-                     
-                     Divider()
-                 }
                  
                  // All workouts list
                  if viewModel.isLoading {
@@ -59,12 +52,7 @@ struct WorkoutListView: View {
                         Image(systemName: "calendar")
                     }
                 }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingCreateWorkout = true }) {
-                        Image(systemName: "plus")
-                    }
-                }
+
             }
             .sheet(isPresented: $showingCreateWorkout) {
                 CreateWorkoutView(viewModel: viewModel)
@@ -75,7 +63,7 @@ struct WorkoutListView: View {
                 }
             }
             .sheet(isPresented: $showingCalendar) {
-                WorkoutCalendarView(context: context)
+                WorkoutCalendarView(context: context, workoutViewModel: viewModel)
             }
             .sheet(isPresented: $showingDuplicateSheet) {
                 if let workout = workoutToDuplicate {
@@ -120,6 +108,11 @@ struct WorkoutListView: View {
                                 // Start workout
                             }) {
                                 Label("Start Now", systemImage: "play.circle")
+                            }
+                            Button(action: {
+                                createTemplate(from: workout)
+                            }) {
+                                Label("Save as Template", systemImage: "square.and.arrow.down")
                             }
                         }
                     }
@@ -167,48 +160,130 @@ struct WorkoutListView: View {
     private var workoutsList: some View {
         List {
             ForEach(groupedWorkouts, id: \.key) { section in
-                Section(header: Text(section.key)) {
-                    ForEach(section.value) { workout in
-                        WorkoutRowView(workout: workout)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                selectedWorkout = workout
-                            }
-                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                Button {
-                                    duplicateWorkoutToToday(workout)
-                                } label: {
-                                    Label("Today", systemImage: "calendar.badge.plus")
+                if section.key == "COMPLETED WORKOUTS" {
+                    DisclosureGroup("Completed Workouts (\(section.value.count))") {
+                        ForEach(section.value.sorted(by: { ($0.date ?? Date()) > ($1.date ?? Date()) })) { workout in
+                            CompletedWorkoutRow(workout: workout)
+                                .onTapGesture {
+                                    selectedWorkout = workout
                                 }
-                                .tint(Theme.Colors.primary)
-                                
-                                Button {
-                                    duplicateWorkoutToTomorrow(workout)
-                                } label: {
-                                    Label("Tomorrow", systemImage: "calendar.badge.clock")
+                        }
+                    }
+                } else {
+                    Section(header: Text(section.key)) {
+                        ForEach(section.value) { workout in
+                            WorkoutRowView(workout: workout)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    selectedWorkout = workout
                                 }
-                                .tint(Theme.Colors.shoulders)
-                            }
-                            .swipeActions(edge: .trailing) {
-                                Button(role: .destructive) {
-                                    deleteWorkout(workout)
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                                
-                                Button {
-                                    showingDuplicateSheet = true
-                                    workoutToDuplicate = workout
-                                } label: {
-                                    Label("Custom", systemImage: "calendar")
-                                }
-                                .tint(Theme.Colors.info)
-                            }
+                                // ... swipe actions
+                        }
                     }
                 }
             }
         }
         .listStyle(InsetGroupedListStyle())
+    }
+    
+    struct CompletedWorkoutRow: View {
+        let workout: Workout
+        
+        var body: some View {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(workout.wrappedName)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Text(workout.date?.formatted(date: .abbreviated, time: .omitted) ?? "")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                if workout.isCompleted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                }
+                
+                Text("\(workout.workoutExercisesArray.count)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Image(systemName: "figure.strengthtraining.traditional")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.vertical, 2)
+        }
+    }
+
+    @ViewBuilder
+    private func workoutRow(for workout: Workout) -> some View {
+        WorkoutRowView(workout: workout)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                selectedWorkout = workout
+            }
+            .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                leadingSwipeActions(for: workout)
+            }
+            .swipeActions(edge: .trailing) {
+                trailingSwipeActions(for: workout)
+            }
+    }
+
+    @ViewBuilder
+    private func leadingSwipeActions(for workout: Workout) -> some View {
+        Button {
+            duplicateWorkoutToToday(workout)
+        } label: {
+            Label("Today", systemImage: "calendar.badge.plus")
+        }
+        .tint(Theme.Colors.primary)
+        
+        Button {
+            duplicateWorkoutToTomorrow(workout)
+        } label: {
+            Label("Tomorrow", systemImage: "calendar.badge.clock")
+        }
+        .tint(Theme.Colors.shoulders)
+    }
+
+    @ViewBuilder
+    private func trailingSwipeActions(for workout: Workout) -> some View {
+        Button(role: .destructive) {
+            deleteWorkout(workout)
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
+        
+        Button {
+            showingDuplicateSheet = true
+            workoutToDuplicate = workout
+        } label: {
+            Label("Custom", systemImage: "calendar")
+        }
+        .tint(Theme.Colors.info)
+    }
+    
+    private func createTemplate(from workout: Workout) {
+        let duplicationService = WorkoutDuplicationService(context: context)
+        
+        Task {
+            do {
+                _ = try duplicationService.createTemplate(
+                    from: workout,
+                    templateName: "\(workout.wrappedName) Template"
+                )
+                HapticManager.shared.notification(.success)
+            } catch {
+                print("Error creating template: \(error)")
+            }
+        }
     }
     
     private func duplicateWorkoutToToday(_ workout: Workout) {
@@ -267,30 +342,52 @@ struct WorkoutListView: View {
     // MARK: - Helper Methods
     
     private var groupedWorkouts: [(key: String, value: [Workout])] {
+        let calendar = Calendar.current
+        let now = Date()
+        
         let grouped = Dictionary(grouping: viewModel.workouts) { workout -> String in
             let date = workout.date ?? Date()
-            if Calendar.current.isDateInToday(date) {
-                return "Today"
-            } else if Calendar.current.isDateInYesterday(date) {
-                return "Yesterday"
-            } else if let weekday = Calendar.current.dateComponents([.weekday], from: date).weekday,
-                      let daysAgo = Calendar.current.dateComponents([.day], from: date, to: Date()).day,
-                      daysAgo <= 7 {
-                return Calendar.current.weekdaySymbols[weekday - 1]
-            } else {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "MMMM d, yyyy"
-                return formatter.string(from: date)
+            
+            // Primero verificar si es hoy
+            if calendar.isDateInToday(date) {
+                return "TODAY"
+            }
+            // Luego si es futuro
+            else if date > now {
+                // Para workouts futuros, mostrar el día
+                if calendar.isDateInTomorrow(date) {
+                    return "TOMORROW"
+                } else {
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "EEEE, MMM d"
+                    return formatter.string(from: date).uppercased()
+                }
+            }
+            // Todos los pasados van juntos
+            else {
+                return "COMPLETED WORKOUTS"
             }
         }
         
+        // Ordenar las secciones
         return grouped.sorted { first, second in
-            // Sort by most recent first
-            guard let firstDate = first.value.first?.date,
-                  let secondDate = second.value.first?.date else {
-                return false
+            // Orden personalizado
+            let order = ["TODAY": 0, "TOMORROW": 1, "COMPLETED WORKOUTS": 100]
+            
+            let firstOrder = order[first.key] ?? 50 // Los días futuros van en el medio
+            let secondOrder = order[second.key] ?? 50
+            
+            if firstOrder != secondOrder {
+                return firstOrder < secondOrder
             }
-            return firstDate > secondDate
+            
+            // Si ambos son días futuros, ordenar por fecha
+            if let firstDate = first.value.first?.date,
+               let secondDate = second.value.first?.date {
+                return firstDate < secondDate
+            }
+            
+            return false
         }
     }
     
@@ -351,6 +448,8 @@ struct WorkoutRowView: View {
     @State private var showingDuplicateSheet = false
     @State private var showingActions = false
     @State private var showingQuickDuplicate = false
+    @State private var showingTemplateAlert = false
+    @State private var templateName = ""
     
     var body: some View {
         HStack {
@@ -397,17 +496,18 @@ struct WorkoutRowView: View {
             .buttonStyle(PlainButtonStyle())
             
             Menu {
-                Button(action: { showingDuplicateSheet = true }) {
-                    Label("Duplicate with Custom Date", systemImage: "calendar")
-                }
-                
                 Button(action: { duplicateToTomorrow() }) {
                     Label("Duplicate to Tomorrow", systemImage: "calendar.badge.plus")
                 }
                 
-                Button(action: { createTemplate() }) {
+                Button(action: {
+                    templateName = "\(workout.wrappedName) Template"
+                    showingTemplateAlert = true
+                }) {
                     Label("Save as Template", systemImage: "square.and.arrow.down")
                 }
+            
+
                 
                 Divider()
                 
@@ -444,8 +544,15 @@ struct WorkoutRowView: View {
             }
             
             Button("Cancel", role: .cancel) { }
+        }
+        .alert("Save as Template", isPresented: $showingTemplateAlert) {
+            TextField("Template Name", text: $templateName)
+            Button("Cancel", role: .cancel) { }
+            Button("Save") {
+                createTemplate()
+            }
         } message: {
-            Text("When would you like to schedule this workout?")
+            Text("Enter a name for this workout template")
         }
     }
     
@@ -453,6 +560,23 @@ struct WorkoutRowView: View {
     
     private func duplicateToToday() {
         duplicateWorkout(to: Date())
+    }
+    
+    private func createTemplate() {
+        let duplicationService = WorkoutDuplicationService(context: context)
+        
+        Task {
+            do {
+                _ = try duplicationService.createTemplate(
+                    from: workout,
+                    templateName: templateName.isEmpty ? "\(workout.wrappedName) Template" : templateName
+                )
+                HapticManager.shared.notification(.success)
+                print("Template created successfully: \(templateName)")
+            } catch {
+                print("Error creating template: \(error)")
+            }
+        }
     }
     
     private func duplicateToTomorrow() {
@@ -474,22 +598,6 @@ struct WorkoutRowView: View {
                 HapticManager.shared.notification(.success)
             } catch {
                 print("Error duplicating workout: \(error)")
-            }
-        }
-    }
-    
-    private func createTemplate() {
-        let duplicationService = WorkoutDuplicationService(context: context)
-        
-        Task {
-            do {
-                _ = try duplicationService.createTemplate(
-                    from: workout,
-                    templateName: "\(workout.wrappedName) Template"
-                )
-                HapticManager.shared.notification(.success)
-            } catch {
-                print("Error creating template: \(error)")
             }
         }
     }
@@ -774,10 +882,10 @@ struct FloatingActionButton: View {
             }
         }
         .sheet(isPresented: $showingCreateWorkout) {
-            // Create workout view
+            CreateWorkoutView(viewModel: WorkoutViewModel(context: context))
         }
         .sheet(isPresented: $showingTemplates) {
-            // Templates view
+            TemplateListView()
         }
     }
     
